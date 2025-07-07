@@ -32,7 +32,9 @@ export const UtilisateursPage: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Chargement des utilisateurs...');
       const data = await authService.getUsers();
+      console.log('Utilisateurs reçus:', data);
       const normalizedData = normalizeApiResponse(data);
       setUsers(normalizedData.map((item: any) => ({
         ...item,
@@ -48,7 +50,9 @@ export const UtilisateursPage: React.FC = () => {
 
   const fetchMagasins = async () => {
     try {
+      console.log('Chargement des magasins...');
       const data = await storesService.getStores();
+      console.log('Magasins reçus:', data);
       const normalizedData = normalizeApiResponse(data);
       setMagasins(normalizedData.map((item: any) => ({
         ...item,
@@ -80,6 +84,7 @@ export const UtilisateursPage: React.FC = () => {
           updateData.image = formData.image;
         }
 
+        console.log('Modification utilisateur:', updateData);
         await authService.updateUser(editingUser.id, updateData);
         toast.success('Utilisateur modifié avec succès');
       } else {
@@ -99,6 +104,7 @@ export const UtilisateursPage: React.FC = () => {
           image: formData.image
         };
 
+        console.log('Création utilisateur:', userData);
         await authService.createUser(userData);
         toast.success('Utilisateur créé avec succès');
       }
@@ -114,18 +120,32 @@ export const UtilisateursPage: React.FC = () => {
       if (error.message) {
         try {
           const errorData = JSON.parse(error.message);
+          console.log('Erreur parsée:', errorData);
+          
           if (errorData.email) {
-            errorMessage = 'Cette adresse email est déjà utilisée';
+            if (Array.isArray(errorData.email)) {
+              errorMessage = errorData.email[0];
+            } else {
+              errorMessage = 'Cette adresse email est déjà utilisée';
+            }
           } else if (errorData.username) {
-            errorMessage = 'Ce nom d\'utilisateur est déjà utilisé';
+            if (Array.isArray(errorData.username)) {
+              errorMessage = errorData.username[0];
+            } else {
+              errorMessage = 'Ce nom d\'utilisateur est déjà utilisé';
+            }
           } else if (errorData.detail) {
             errorMessage = errorData.detail;
           } else if (errorData.error) {
             errorMessage = errorData.error;
+          } else if (errorData.non_field_errors) {
+            errorMessage = errorData.non_field_errors[0];
           }
         } catch {
           if (error.message.includes('email') || error.message.includes('unique')) {
             errorMessage = 'Cette adresse email est déjà utilisée';
+          } else if (error.message.includes('username')) {
+            errorMessage = 'Le nom d\'utilisateur est requis';
           } else {
             errorMessage = error.message;
           }
@@ -139,6 +159,7 @@ export const UtilisateursPage: React.FC = () => {
   };
 
   const handleEdit = (user: UserType) => {
+    console.log('Édition utilisateur:', user);
     setEditingUser(user);
     setFormData({
       email: user.email,

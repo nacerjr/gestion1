@@ -14,7 +14,7 @@ export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: `Bonjour ${user?.prenom || 'utilisateur'} ! Je suis votre assistant IA pour StockPro. Comment puis-je vous aider aujourd'hui ?`,
+      content: `Bonjour ${user?.prenom || 'utilisateur'} ! Je suis votre assistant IA intelligent pour StockPro. Je peux vous aider avec toutes les fonctionnalités de l'application. Comment puis-je vous assister aujourd'hui ?`,
       isBot: true,
       timestamp: new Date()
     }
@@ -28,87 +28,117 @@ export const ChatBot: React.FC = () => {
     // Réponses contextuelles selon le rôle
     const isAdmin = user?.role === 'admin';
     
-    if (message.includes('bonjour') || message.includes('salut') || message.includes('hello')) {
-      return `Bonjour ${user?.prenom || 'utilisateur'} ! Comment puis-je vous aider avec StockPro aujourd'hui ?`;
+    // Salutations et politesse
+    if (message.includes('bonjour') || message.includes('salut') || message.includes('hello') || message.includes('bonsoir')) {
+      return `Bonjour ${user?.prenom || 'utilisateur'} ! Ravi de vous revoir. Je suis là pour vous aider avec StockPro. Que puis-je faire pour vous aujourd'hui ?`;
     }
 
-    if (message.includes('merci')) {
-      return 'Je vous en prie ! N\'hésitez pas si vous avez d\'autres questions sur StockPro.';
+    if (message.includes('merci') || message.includes('remercie')) {
+      return 'Je vous en prie ! C\'est un plaisir de vous aider. N\'hésitez pas si vous avez d\'autres questions sur StockPro.';
+    }
+
+    if (message.includes('au revoir') || message.includes('bye') || message.includes('à bientôt')) {
+      return 'Au revoir ! J\'espère avoir pu vous aider. À bientôt sur StockPro !';
     }
     
-    if (message.includes('stock') || message.includes('inventaire')) {
+    // Gestion du stock
+    if (message.includes('stock') || message.includes('inventaire') || message.includes('quantité')) {
       if (isAdmin) {
-        return 'Pour gérer votre stock, vous pouvez aller dans la section "Gestion des Stocks" où vous pourrez voir les quantités disponibles, ajouter de nouveaux produits et suivre les mouvements de stock. Vous pouvez également consulter les alertes de stock bas sur le dashboard.';
+        return 'Pour gérer votre stock efficacement :\n\n📊 **Dashboard** : Consultez les statistiques globales et alertes\n📦 **Gestion des Stocks** : Ajoutez, modifiez et suivez les quantités\n📈 **Mouvements** : Historique complet des entrées/sorties\n⚠️ **Alertes** : Notifications automatiques pour les stocks bas\n\nVoulez-vous que je vous guide sur une fonctionnalité spécifique ?';
       } else {
-        return 'Vous pouvez consulter le stock de votre magasin dans la section "Stock" et enregistrer des mouvements de stock (entrées/sorties) selon vos besoins.';
-      }
-    }
-    
-    if (message.includes('pointage') || message.includes('présence')) {
-      if (isAdmin) {
-        return 'Vous pouvez consulter toutes les présences des employés dans la section "Présences". Vous y trouverez l\'historique complet des pointages avec possibilité d\'export en CSV ou PDF.';
-      } else {
-        return 'Le système de pointage vous permet d\'enregistrer vos heures d\'arrivée et de départ. Assurez-vous d\'être dans un rayon de 100m de votre magasin pour pointer. Vous pouvez gérer vos pauses également.';
+        return 'Pour gérer le stock de votre magasin :\n\n📦 **Section Stock** : Consultez les produits disponibles\n➕ **Mouvements** : Enregistrez les entrées/sorties\n📊 **Quantités** : Vérifiez les niveaux actuels\n⚠️ **Alertes** : Surveillez les produits en rupture\n\nBesoin d\'aide pour une action spécifique ?';
       }
     }
     
-    if (message.includes('produit') || message.includes('article')) {
+    // Pointage et présences
+    if (message.includes('pointage') || message.includes('présence') || message.includes('pointer') || message.includes('horaire')) {
       if (isAdmin) {
-        return 'Dans la section Produits, vous pouvez ajouter de nouveaux articles, modifier les informations existantes, définir des seuils d\'alerte pour le stock et gérer les images des produits.';
+        return 'Gestion des présences administrateur :\n\n👥 **Section Présences** : Consultez tous les pointages\n📊 **Statistiques** : Temps de travail et pauses\n📄 **Exports** : Générez des rapports CSV/PDF\n📍 **Géolocalisation** : Vérifiez la validité des pointages\n\nQuelle information recherchez-vous ?';
       } else {
-        return 'Vous pouvez consulter les produits disponibles dans votre magasin via la section Stock. Les informations incluent les prix, références et quantités disponibles.';
+        return 'Pour votre pointage quotidien :\n\n🕐 **Arrivée/Départ** : Pointez dans un rayon de 100m du magasin\n☕ **Pauses** : Gérez vos temps de pause\n📱 **Géolocalisation** : Activez le GPS pour pointer\n📊 **Historique** : Consultez vos pointages précédents\n\nProblème avec le pointage ?';
       }
     }
     
-    if (message.includes('magasin') || message.includes('boutique')) {
+    // Produits
+    if (message.includes('produit') || message.includes('article') || message.includes('référence')) {
       if (isAdmin) {
-        return 'La gestion des magasins vous permet de configurer les différents points de vente, leurs adresses et coordonnées GPS pour le système de pointage. Vous pouvez aussi ajouter des images pour chaque magasin.';
+        return 'Gestion des produits :\n\n➕ **Ajouter** : Créez de nouveaux produits avec images\n✏️ **Modifier** : Mettez à jour prix, seuils, catégories\n🏷️ **Références** : Gérez les codes produits\n⚠️ **Seuils d\'alerte** : Configurez les alertes de stock\n🏭 **Fournisseurs** : Associez aux fournisseurs\n\nQue souhaitez-vous faire ?';
       } else {
-        return 'Votre magasin assigné détermine où vous pouvez pointer et quel stock vous pouvez consulter. Contactez votre administrateur si vous avez besoin d\'être assigné à un autre magasin.';
+        return 'Consultation des produits :\n\n📦 **Catalogue** : Consultez tous les produits de votre magasin\n💰 **Prix** : Vérifiez les tarifs actuels\n📊 **Stock** : Quantités disponibles\n🔍 **Recherche** : Trouvez rapidement un produit\n\nCherchez-vous un produit en particulier ?';
       }
     }
     
-    if (message.includes('utilisateur') || message.includes('employé')) {
+    // Magasins
+    if (message.includes('magasin') || message.includes('boutique') || message.includes('point de vente')) {
       if (isAdmin) {
-        return 'Les administrateurs peuvent gérer les comptes utilisateurs, assigner des rôles (admin/employé) et des magasins aux employés dans la section Utilisateurs. Vous pouvez aussi consulter leurs présences.';
+        return 'Gestion des magasins :\n\n🏪 **Créer/Modifier** : Configurez vos points de vente\n📍 **Géolocalisation** : Définissez les coordonnées GPS\n📸 **Images** : Ajoutez des photos des magasins\n👥 **Assignation** : Liez les employés aux magasins\n\nQuelle action voulez-vous effectuer ?';
       } else {
-        return 'Pour toute question concernant votre compte utilisateur ou vos permissions, contactez votre administrateur.';
+        return 'Informations sur votre magasin :\n\n🏪 **Magasin assigné** : Détermine votre zone de pointage\n📍 **Localisation** : Rayon de 100m pour pointer\n📦 **Stock local** : Produits de votre magasin uniquement\n\nContactez votre administrateur pour changer d\'assignation.';
       }
-    }
-
-    if (message.includes('message') || message.includes('communication')) {
-      if (isAdmin) {
-        return 'Vous pouvez communiquer avec tous les employés via le système de messagerie intégré. Cliquez sur l\'icône de message en bas à droite pour démarrer une conversation.';
-      } else {
-        return 'Vous pouvez envoyer des messages aux administrateurs via le système de messagerie. Cliquez sur l\'icône de message en bas à droite de votre écran.';
-      }
-    }
-
-    if (message.includes('dashboard') || message.includes('tableau de bord')) {
-      if (isAdmin) {
-        return 'Votre dashboard administrateur affiche les statistiques globales : nombre de produits, magasins, utilisateurs, alertes de stock et valeur totale du stock. Vous y trouvez aussi des graphiques de répartition.';
-      } else {
-        return 'Votre dashboard employé affiche les informations de votre magasin : produits en stock, alertes, et actions rapides pour le pointage et la consultation du stock.';
-      }
-    }
-
-    if (message.includes('problème') || message.includes('erreur') || message.includes('bug')) {
-      return 'Si vous rencontrez un problème technique, essayez de rafraîchir la page. Si le problème persiste, contactez votre administrateur système avec une description détaillée du problème.';
-    }
-
-    if (message.includes('aide') || message.includes('help')) {
-      if (isAdmin) {
-        return 'Je peux vous aider avec : la gestion du stock, les produits, les magasins, les utilisateurs, les présences, les fournisseurs, les paramètres et les fonctionnalités générales de StockPro. Que souhaitez-vous savoir ?';
-      } else {
-        return 'Je peux vous aider avec : le pointage, la consultation du stock de votre magasin, l\'enregistrement des mouvements de stock et les fonctionnalités générales de StockPro. Que souhaitez-vous savoir ?';
-      }
-    }
-
-    if (message.includes('comment') && message.includes('utiliser')) {
-      return 'Pour utiliser StockPro efficacement, commencez par explorer votre dashboard. Chaque section a des boutons d\'action clairs. N\'hésitez pas à me poser des questions spécifiques sur une fonctionnalité !';
     }
     
-    return 'Je comprends votre question. Pour une assistance plus détaillée, n\'hésitez pas à contacter votre administrateur ou à me poser une question plus spécifique sur les fonctionnalités de StockPro.';
+    // Utilisateurs et équipe
+    if (message.includes('utilisateur') || message.includes('employé') || message.includes('équipe') || message.includes('compte')) {
+      if (isAdmin) {
+        return 'Gestion des utilisateurs :\n\n👤 **Créer** : Nouveaux comptes employés/admins\n✏️ **Modifier** : Rôles, magasins, informations\n🔐 **Permissions** : Admin vs Employé\n🏪 **Assignation** : Liez aux magasins\n📊 **Activité** : Consultez les présences\n\nQue voulez-vous gérer ?';
+      } else {
+        return 'Gestion de votre compte :\n\n👤 **Profil** : Vos informations personnelles\n🔐 **Permissions** : Définies par votre administrateur\n🏪 **Magasin** : Votre point de vente assigné\n\nPour modifier vos permissions, contactez votre administrateur.';
+      }
+    }
+
+    // Messages et communication
+    if (message.includes('message') || message.includes('communication') || message.includes('chat')) {
+      if (isAdmin) {
+        return 'Système de messagerie :\n\n💬 **Messages** : Communiquez avec tous les employés\n📨 **Notifications** : Recevez les alertes importantes\n👥 **Conversations** : Discussions individuelles\n🔔 **Temps réel** : Messages instantanés\n\nVoulez-vous envoyer un message ?';
+      } else {
+        return 'Communication avec l\'équipe :\n\n💬 **Messages** : Contactez les administrateurs\n📨 **Notifications** : Recevez les informations importantes\n🤖 **Assistant IA** : Moi, pour l\'aide technique !\n\nComment puis-je vous aider à communiquer ?';
+      }
+    }
+
+    // Dashboard et statistiques
+    if (message.includes('dashboard') || message.includes('tableau de bord') || message.includes('statistique') || message.includes('rapport')) {
+      if (isAdmin) {
+        return 'Votre dashboard administrateur :\n\n📊 **Vue d\'ensemble** : Statistiques globales en temps réel\n📈 **Graphiques** : Répartition des stocks par magasin\n⚠️ **Alertes** : Produits en rupture de stock\n💰 **Valeur** : Valeur totale de votre inventaire\n📋 **Résumé** : Produits, magasins, utilisateurs\n\nQuelle métrique vous intéresse ?';
+      } else {
+        return 'Votre dashboard employé :\n\n🏪 **Votre magasin** : Informations spécifiques à votre point de vente\n📦 **Stock local** : Produits de votre magasin\n⚠️ **Alertes** : Produits à réapprovisionner\n⚡ **Actions rapides** : Pointage et consultation stock\n\nQue souhaitez-vous consulter ?';
+      }
+    }
+
+    // Problèmes techniques
+    if (message.includes('problème') || message.includes('erreur') || message.includes('bug') || message.includes('marche pas') || message.includes('fonctionne pas')) {
+      return '🔧 **Dépannage technique** :\n\n1️⃣ **Rafraîchir** : Actualisez la page (F5)\n2️⃣ **Connexion** : Vérifiez votre connexion internet\n3️⃣ **Cache** : Videz le cache du navigateur\n4️⃣ **Navigateur** : Utilisez Chrome, Firefox ou Safari récent\n\n🆘 Si le problème persiste, contactez votre administrateur avec une description détaillée.';
+    }
+
+    // Aide générale
+    if (message.includes('aide') || message.includes('help') || message.includes('comment') || message.includes('tutorial')) {
+      if (isAdmin) {
+        return '🎯 **Aide administrateur** - Je peux vous assister avec :\n\n📦 **Stock** : Gestion, mouvements, alertes\n🏪 **Magasins** : Configuration, géolocalisation\n👥 **Utilisateurs** : Création, permissions, assignation\n📊 **Rapports** : Statistiques, exports\n⚙️ **Paramètres** : Configuration système\n\n💡 **Astuce** : Soyez spécifique dans vos questions pour une aide personnalisée !';
+      } else {
+        return '🎯 **Aide employé** - Je peux vous aider avec :\n\n🕐 **Pointage** : Arrivée, départ, pauses\n📦 **Stock** : Consultation, mouvements\n💬 **Messages** : Communication avec l\'équipe\n📱 **Application** : Navigation, fonctionnalités\n\n💡 **Astuce** : Décrivez votre besoin précis pour une aide ciblée !';
+    }
+
+    // Fonctionnalités avancées
+    if (message.includes('export') || message.includes('rapport') || message.includes('pdf') || message.includes('csv')) {
+      if (isAdmin) {
+        return '📄 **Exports et rapports** :\n\n📊 **Présences** : Rapports PDF/CSV des pointages\n📈 **Statistiques** : Données de performance\n📋 **Inventaire** : États des stocks\n⏰ **Périodes** : Filtrez par dates\n\nQuel type de rapport souhaitez-vous générer ?';
+      } else {
+        return 'Les exports sont réservés aux administrateurs. Contactez votre responsable pour obtenir des rapports spécifiques.';
+      }
+    }
+
+    // Sécurité et permissions
+    if (message.includes('sécurité') || message.includes('permission') || message.includes('accès') || message.includes('mot de passe')) {
+      return '🔐 **Sécurité StockPro** :\n\n✅ **Authentification** : Connexion sécurisée requise\n🎭 **Rôles** : Admin vs Employé avec permissions différentes\n📍 **Géolocalisation** : Pointage sécurisé par GPS\n🔄 **Sessions** : Déconnexion automatique pour la sécurité\n\n⚠️ Ne partagez jamais vos identifiants !';
+    }
+
+    // Réponse par défaut intelligente
+    const responses = [
+      `Je comprends votre question sur "${userMessage}". Pour vous donner la meilleure réponse possible, pourriez-vous être plus spécifique ? Par exemple, cherchez-vous de l'aide sur le stock, le pointage, ou une autre fonctionnalité ?`,
+      `Intéressant ! Votre question concerne "${userMessage}". Je peux vous aider avec toutes les fonctionnalités de StockPro. Précisez votre besoin et je vous guiderai étape par étape.`,
+      `Je vois que vous vous intéressez à "${userMessage}". Pour une assistance optimale, dites-moi exactement ce que vous souhaitez faire dans StockPro.`
+    ];
+    
+    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleSendMessage = async () => {
@@ -165,7 +195,7 @@ export const ChatBot: React.FC = () => {
                   {message.isBot ? 'Assistant IA' : user?.prenom || 'Vous'}
                 </span>
               </div>
-              <p className="text-sm">{message.content}</p>
+              <div className="text-sm whitespace-pre-line">{message.content}</div>
               <p className={`text-xs mt-1 ${
                 message.isBot ? 'text-gray-500' : 'text-blue-100'
               }`}>
