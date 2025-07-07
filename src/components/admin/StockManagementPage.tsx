@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Package, AlertTriangle, Save, X } from 'lucide-react';
 import { stockService, productsService, storesService } from '../../services/api';
 import { Stock, Produit, Magasin } from '../../types';
+import { safeNumber, parseNumberInput, formatNumber } from '../../utils/numbers';
 import toast from 'react-hot-toast';
 
 export const StockManagementPage: React.FC = () => {
@@ -29,6 +30,7 @@ export const StockManagementPage: React.FC = () => {
       const stocksData = await stockService.getStocks();
       setStocks(stocksData.map((item: any) => ({
         ...item,
+        quantite: safeNumber(item.quantite, 0),
         updatedAt: new Date(item.updated_at)
       })));
 
@@ -36,6 +38,8 @@ export const StockManagementPage: React.FC = () => {
       const produitsData = await productsService.getProducts();
       setProduits(produitsData.map((item: any) => ({
         ...item,
+        prix_unitaire: safeNumber(item.prix_unitaire, 0),
+        seuil_alerte: safeNumber(item.seuil_alerte, 0),
         createdAt: new Date(item.created_at)
       })));
 
@@ -43,6 +47,8 @@ export const StockManagementPage: React.FC = () => {
       const magasinsData = await storesService.getStores();
       setMagasins(magasinsData.map((item: any) => ({
         ...item,
+        latitude: safeNumber(item.latitude, 0),
+        longitude: safeNumber(item.longitude, 0),
         createdAt: new Date(item.created_at)
       })));
     } catch (error) {
@@ -60,7 +66,7 @@ export const StockManagementPage: React.FC = () => {
       const stockData = {
         produit: formData.produit,
         magasin: formData.magasin,
-        quantite: formData.quantite
+        quantite: safeNumber(formData.quantite, 0)
       };
 
       if (editingStock) {
@@ -95,7 +101,7 @@ export const StockManagementPage: React.FC = () => {
     setFormData({
       produit: stock.produit_id,
       magasin: stock.magasin_id,
-      quantite: stock.quantite
+      quantite: safeNumber(stock.quantite, 0)
     });
     setShowModal(true);
   };
@@ -120,6 +126,11 @@ export const StockManagementPage: React.FC = () => {
     });
     setEditingStock(null);
     setShowModal(false);
+  };
+
+  const handleQuantiteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseNumberInput(e.target.value);
+    setFormData({ ...formData, quantite: value });
   };
 
   const getStockWithDetails = () => {
@@ -222,7 +233,7 @@ export const StockManagementPage: React.FC = () => {
               {filteredStocks.map(({ stock, produit, magasin }) => {
                 if (!produit || !magasin) return null;
                 
-                const isLowStock = stock.quantite <= produit.seuil_alerte;
+                const isLowStock = safeNumber(stock.quantite, 0) <= safeNumber(produit.seuil_alerte, 0);
                 
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50">
@@ -252,7 +263,7 @@ export const StockManagementPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`text-lg font-bold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
-                        {stock.quantite}
+                        {formatNumber(safeNumber(stock.quantite, 0))}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -370,9 +381,10 @@ export const StockManagementPage: React.FC = () => {
                     type="number"
                     min="0"
                     required
-                    value={formData.quantite}
-                    onChange={(e) => setFormData({ ...formData, quantite: parseInt(e.target.value) })}
+                    value={formData.quantite === 0 ? '' : formatNumber(formData.quantite)}
+                    onChange={handleQuantiteChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
                   />
                 </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, X, Users, Bell, Bot } from 'lucide-react';
+import { MessageCircle, Send, X, Users, Bot } from 'lucide-react';
 import { messagingService, authService } from '../services/api';
 import { normalizeApiResponse } from '../config/api';
 import { useAuth } from '../hooks/useAuth';
@@ -17,6 +17,24 @@ export const MessagingWidget: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Fermer le widget quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (widgetRef.current && !widgetRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (user) {
@@ -85,7 +103,9 @@ export const MessagingWidget: React.FC = () => {
 
       setNewMessage('');
       fetchMessages();
+      toast.success('Message envoyé');
     } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error);
       toast.error('Erreur lors de l\'envoi du message');
     }
   };
@@ -133,12 +153,12 @@ export const MessagingWidget: React.FC = () => {
   if (!user) return null;
 
   return (
-    <>
+    <div ref={widgetRef}>
       {/* Floating Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200 z-50"
+          className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-110 z-50"
         >
           <MessageCircle className="h-6 w-6" />
           {unreadCount > 0 && (
@@ -151,7 +171,7 @@ export const MessagingWidget: React.FC = () => {
 
       {/* Chat Widget */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border border-gray-200 z-50 w-96 h-[500px] flex flex-col">
+        <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border border-gray-200 z-50 w-96 h-[500px] flex flex-col transform transition-all duration-300 ease-out">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-lg">
             <div className="flex items-center space-x-2">
@@ -167,7 +187,7 @@ export const MessagingWidget: React.FC = () => {
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-white hover:text-gray-200"
+              className="text-white hover:text-gray-200 transition-colors duration-200"
             >
               <X className="h-4 w-4" />
             </button>
@@ -177,7 +197,7 @@ export const MessagingWidget: React.FC = () => {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('messages')}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors duration-200 ${
                 activeTab === 'messages'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
@@ -190,7 +210,7 @@ export const MessagingWidget: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('chatbot')}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors duration-200 ${
                 activeTab === 'chatbot'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
@@ -216,7 +236,7 @@ export const MessagingWidget: React.FC = () => {
                         {user.role === 'admin' ? 'Employés' : 'Administrateurs'}
                       </span>
                     </div>
-                    {users.map((u) => {
+                    {users.length > 0 ? users.map((u) => {
                       const userUnreadCount = getUserUnreadCount(u.id);
                       return (
                         <button
@@ -227,7 +247,7 @@ export const MessagingWidget: React.FC = () => {
                           }`}
                         >
                           <div className="text-sm font-medium text-gray-900 truncate">
-                            {u.email}
+                            {u.prenom} {u.nom}
                           </div>
                           <div className="text-xs text-gray-500 capitalize">
                             {u.role}
@@ -239,7 +259,11 @@ export const MessagingWidget: React.FC = () => {
                           )}
                         </button>
                       );
-                    })}
+                    }) : (
+                      <div className="text-center text-gray-500 text-sm p-4">
+                        Aucun utilisateur disponible
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -324,6 +348,6 @@ export const MessagingWidget: React.FC = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };

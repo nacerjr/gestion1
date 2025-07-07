@@ -14,7 +14,7 @@ export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: 'Bonjour ! Je suis votre assistant IA pour StockPro. Comment puis-je vous aider aujourd\'hui ?',
+      content: `Bonjour ${user?.prenom || 'utilisateur'} ! Je suis votre assistant IA pour StockPro. Comment puis-je vous aider aujourd'hui ?`,
       isBot: true,
       timestamp: new Date()
     }
@@ -47,6 +47,14 @@ export const ChatBot: React.FC = () => {
     
     if (message.includes('aide') || message.includes('help')) {
       return 'Je peux vous aider avec : la gestion du stock, le pointage, les produits, les magasins, les utilisateurs, et les fonctionnalités générales de StockPro. Que souhaitez-vous savoir ?';
+    }
+
+    if (message.includes('bonjour') || message.includes('salut') || message.includes('hello')) {
+      return `Bonjour ${user?.prenom || 'utilisateur'} ! Comment puis-je vous aider avec StockPro aujourd'hui ?`;
+    }
+
+    if (message.includes('merci')) {
+      return 'Je vous en prie ! N\'hésitez pas si vous avez d\'autres questions sur StockPro.';
     }
     
     return 'Je comprends votre question. Pour une assistance plus détaillée, n\'hésitez pas à contacter votre administrateur ou à consulter la documentation de StockPro.';

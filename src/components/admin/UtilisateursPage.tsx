@@ -107,11 +107,32 @@ export const UtilisateursPage: React.FC = () => {
       await fetchUsers();
     } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
-      if (error.message.includes('email') || error.message.includes('unique')) {
-        toast.error('Cette adresse email est déjà utilisée');
-      } else {
-        toast.error(error.message || 'Erreur lors de la sauvegarde');
+      
+      // Amélioration de la gestion des erreurs
+      let errorMessage = 'Erreur lors de la sauvegarde';
+      
+      if (error.message) {
+        try {
+          const errorData = JSON.parse(error.message);
+          if (errorData.email) {
+            errorMessage = 'Cette adresse email est déjà utilisée';
+          } else if (errorData.username) {
+            errorMessage = 'Ce nom d\'utilisateur est déjà utilisé';
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          if (error.message.includes('email') || error.message.includes('unique')) {
+            errorMessage = 'Cette adresse email est déjà utilisée';
+          } else {
+            errorMessage = error.message;
+          }
+        }
       }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
