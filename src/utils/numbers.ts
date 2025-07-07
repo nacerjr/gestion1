@@ -17,10 +17,3 @@ export const parseNumberInput = (value: string): number => {
 export const formatNumber = (value: number): string => {
   return isNaN(value) ? '0' : value.toString();
 };
-
-export const formatCurrency = (value: number): string => {
-  return safeNumber(value, 0).toLocaleString('fr-FR', {
-    style: 'currency',
-    currency: 'EUR'
-  });
-};

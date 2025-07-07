@@ -17,26 +17,15 @@ export const authService = {
   getCurrentUser: () => apiRequest(endpoints.currentUser),
   
   getUsers: async () => {
-    try {
-      console.log('Récupération des utilisateurs...');
-      const response = await apiRequest(endpoints.users);
-      console.log('Utilisateurs API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des utilisateurs:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.users);
+    return normalizeApiResponse(response);
   },
   
   createUser: (userData: any) => {
     // Créer FormData pour l'upload
     const formData = new FormData();
     
-    // Générer un username basé sur l'email si pas fourni
-    const username = userData.username || userData.email.split('@')[0];
-    
     // Ajouter les champs requis
-    formData.append('username', username); // CHAMP OBLIGATOIRE
     formData.append('email', userData.email);
     formData.append('nom', userData.nom);
     formData.append('prenom', userData.prenom);
@@ -53,15 +42,6 @@ export const authService = {
       formData.append('image', userData.image);
     }
     
-    console.log('Création utilisateur avec données:', {
-      username,
-      email: userData.email,
-      nom: userData.nom,
-      prenom: userData.prenom,
-      role: userData.role,
-      magasin: userData.magasin
-    });
-    
     return fetch(`http://localhost:8000/api/auth/users/`, {
       method: 'POST',
       headers: {
@@ -71,8 +51,7 @@ export const authService = {
     }).then(async response => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Erreur détaillée création utilisateur:', errorData);
-        throw new Error(JSON.stringify(errorData));
+        throw new Error(errorData.error || errorData.message || `Erreur HTTP: ${response.status}`);
       }
       return response.json();
     });
@@ -88,10 +67,8 @@ export const authService = {
     if (userData.magasin) formData.append('magasin', userData.magasin);
     if (userData.image) formData.append('image', userData.image);
     
-    console.log('Modification utilisateur avec données:', userData);
-    
     return fetch(`http://localhost:8000/api/auth/users/${id}/`, {
-      method: 'PATCH', // Utiliser PATCH au lieu de PUT pour les mises à jour partielles
+      method: 'PUT',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -99,8 +76,7 @@ export const authService = {
     }).then(async response => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Erreur détaillée modification utilisateur:', errorData);
-        throw new Error(JSON.stringify(errorData));
+        throw new Error(errorData.error || errorData.message || `Erreur HTTP: ${response.status}`);
       }
       return response.json();
     });
@@ -113,15 +89,8 @@ export const authService = {
 // Products Services
 export const productsService = {
   getProducts: async () => {
-    try {
-      console.log('Récupération des produits...');
-      const response = await apiRequest(endpoints.products);
-      console.log('Produits API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des produits:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.products);
+    return normalizeApiResponse(response);
   },
   
   createProduct: (productData: any) => {
@@ -195,15 +164,8 @@ export const productsService = {
 // Stores Services
 export const storesService = {
   getStores: async () => {
-    try {
-      console.log('Récupération des magasins...');
-      const response = await apiRequest(endpoints.stores);
-      console.log('Magasins API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des magasins:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.stores);
+    return normalizeApiResponse(response);
   },
   
   createStore: (storeData: any) => {
@@ -267,15 +229,8 @@ export const storesService = {
 // Suppliers Services
 export const suppliersService = {
   getSuppliers: async () => {
-    try {
-      console.log('Récupération des fournisseurs...');
-      const response = await apiRequest(endpoints.suppliers);
-      console.log('Fournisseurs API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des fournisseurs:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.suppliers);
+    return normalizeApiResponse(response);
   },
   
   createSupplier: (supplierData: any) => {
@@ -337,123 +292,55 @@ export const suppliersService = {
 // Stock Services
 export const stockService = {
   getStocks: async () => {
-    try {
-      console.log('Récupération des stocks...');
-      const response = await apiRequest(endpoints.stocks);
-      console.log('Stocks API response:', response);
-      const normalizedData = normalizeApiResponse(response);
-      console.log('Stocks normalisés:', normalizedData);
-      return normalizedData;
-    } catch (error) {
-      console.error('Erreur lors de la récupération des stocks:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.stocks);
+    return normalizeApiResponse(response);
   },
   
-  createStock: async (stockData: any) => {
-    try {
-      console.log('Création de stock avec données:', stockData);
-      const response = await apiRequest(endpoints.stocks, {
-        method: 'POST',
-        body: JSON.stringify(stockData),
-      });
-      console.log('Stock créé:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la création du stock:', error);
-      throw error;
-    }
-  },
+  createStock: (stockData: any) =>
+    apiRequest(endpoints.stocks, {
+      method: 'POST',
+      body: JSON.stringify(stockData),
+    }),
   
-  updateStock: async (id: string, stockData: any) => {
-    try {
-      console.log('Modification de stock avec données:', stockData);
-      const response = await apiRequest(`${endpoints.stocks}${id}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(stockData),
-      });
-      console.log('Stock modifié:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la modification du stock:', error);
-      throw error;
-    }
-  },
+  updateStock: (id: string, stockData: any) =>
+    apiRequest(`${endpoints.stocks}${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(stockData),
+    }),
   
   deleteStock: (id: string) =>
     apiRequest(`${endpoints.stocks}${id}/`, { method: 'DELETE' }),
   
   getMovements: async () => {
-    try {
-      console.log('Récupération des mouvements...');
-      const response = await apiRequest(endpoints.movements);
-      console.log('Mouvements API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des mouvements:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.movements);
+    return normalizeApiResponse(response);
   },
   
-  createMovement: async (movementData: any) => {
-    try {
-      console.log('Création de mouvement avec données:', movementData);
-      const response = await apiRequest(endpoints.movements, {
-        method: 'POST',
-        body: JSON.stringify(movementData),
-      });
-      console.log('Mouvement créé:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la création du mouvement:', error);
-      throw error;
-    }
-  },
+  createMovement: (movementData: any) =>
+    apiRequest(endpoints.movements, {
+      method: 'POST',
+      body: JSON.stringify(movementData),
+    }),
 };
 
 // Attendance Services
 export const attendanceService = {
   getAttendance: async () => {
-    try {
-      console.log('Récupération des présences...');
-      const response = await apiRequest(endpoints.attendance);
-      console.log('Présences API response:', response);
-      return normalizeApiResponse(response);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des présences:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.attendance);
+    return normalizeApiResponse(response);
   },
   
-  createAttendance: async (attendanceData: any) => {
-    try {
-      console.log('Création de présence avec données:', attendanceData);
-      const response = await apiRequest(endpoints.attendance, {
-        method: 'POST',
-        body: JSON.stringify(attendanceData),
-      });
-      console.log('Présence créée:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la création de la présence:', error);
-      throw error;
-    }
-  },
+  createAttendance: (attendanceData: any) =>
+    apiRequest(endpoints.attendance, {
+      method: 'POST',
+      body: JSON.stringify(attendanceData),
+    }),
   
-  updateAttendance: async (id: string, attendanceData: any) => {
-    try {
-      console.log('Modification de présence avec données:', attendanceData);
-      const response = await apiRequest(`${endpoints.attendance}${id}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(attendanceData),
-      });
-      console.log('Présence modifiée:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la modification de la présence:', error);
-      throw error;
-    }
-  },
+  updateAttendance: (id: string, attendanceData: any) =>
+    apiRequest(`${endpoints.attendance}${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(attendanceData),
+    }),
   
   deleteAttendance: (id: string) =>
     apiRequest(`${endpoints.attendance}${id}/`, { method: 'DELETE' }),
@@ -462,48 +349,21 @@ export const attendanceService = {
 // Messaging Services
 export const messagingService = {
   getMessages: async () => {
-    try {
-      console.log('Récupération des messages...');
-      const response = await apiRequest(endpoints.messages);
-      console.log('Messages API response:', response);
-      const normalizedData = normalizeApiResponse(response);
-      console.log('Messages normalisés:', normalizedData);
-      return normalizedData;
-    } catch (error) {
-      console.error('Erreur lors de la récupération des messages:', error);
-      throw error;
-    }
+    const response = await apiRequest(endpoints.messages);
+    return normalizeApiResponse(response);
   },
   
-  createMessage: async (messageData: any) => {
-    try {
-      console.log('Création de message avec données:', messageData);
-      const response = await apiRequest(endpoints.messages, {
-        method: 'POST',
-        body: JSON.stringify(messageData),
-      });
-      console.log('Message créé:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la création du message:', error);
-      throw error;
-    }
-  },
+  createMessage: (messageData: any) =>
+    apiRequest(endpoints.messages, {
+      method: 'POST',
+      body: JSON.stringify(messageData),
+    }),
   
-  updateMessage: async (id: string, messageData: any) => {
-    try {
-      console.log('Modification de message avec données:', messageData);
-      const response = await apiRequest(`${endpoints.messages}${id}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(messageData),
-      });
-      console.log('Message modifié:', response);
-      return response;
-    } catch (error) {
-      console.error('Erreur lors de la modification du message:', error);
-      throw error;
-    }
-  },
+  updateMessage: (id: string, messageData: any) =>
+    apiRequest(`${endpoints.messages}${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(messageData),
+    }),
   
   deleteMessage: (id: string) =>
     apiRequest(`${endpoints.messages}${id}/`, { method: 'DELETE' }),
