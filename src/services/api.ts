@@ -51,7 +51,8 @@ export const authService = {
     }).then(async response => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `Erreur HTTP: ${response.status}`);
+        console.error('Erreur détaillée:', errorData);
+        throw new Error(JSON.stringify(errorData));
       }
       return response.json();
     });
@@ -68,7 +69,7 @@ export const authService = {
     if (userData.image) formData.append('image', userData.image);
     
     return fetch(`http://localhost:8000/api/auth/users/${id}/`, {
-      method: 'PUT',
+      method: 'PATCH', // Utiliser PATCH au lieu de PUT pour les mises à jour partielles
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -76,7 +77,8 @@ export const authService = {
     }).then(async response => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `Erreur HTTP: ${response.status}`);
+        console.error('Erreur détaillée:', errorData);
+        throw new Error(JSON.stringify(errorData));
       }
       return response.json();
     });
@@ -292,15 +294,30 @@ export const suppliersService = {
 // Stock Services
 export const stockService = {
   getStocks: async () => {
-    const response = await apiRequest(endpoints.stocks);
-    return normalizeApiResponse(response);
+    try {
+      const response = await apiRequest(endpoints.stocks);
+      console.log('Stocks API response:', response);
+      return normalizeApiResponse(response);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des stocks:', error);
+      throw error;
+    }
   },
   
-  createStock: (stockData: any) =>
-    apiRequest(endpoints.stocks, {
-      method: 'POST',
-      body: JSON.stringify(stockData),
-    }),
+  createStock: async (stockData: any) => {
+    try {
+      console.log('Création de stock avec données:', stockData);
+      const response = await apiRequest(endpoints.stocks, {
+        method: 'POST',
+        body: JSON.stringify(stockData),
+      });
+      console.log('Stock créé:', response);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création du stock:', error);
+      throw error;
+    }
+  },
   
   updateStock: (id: string, stockData: any) =>
     apiRequest(`${endpoints.stocks}${id}/`, {
@@ -312,29 +329,59 @@ export const stockService = {
     apiRequest(`${endpoints.stocks}${id}/`, { method: 'DELETE' }),
   
   getMovements: async () => {
-    const response = await apiRequest(endpoints.movements);
-    return normalizeApiResponse(response);
+    try {
+      const response = await apiRequest(endpoints.movements);
+      console.log('Movements API response:', response);
+      return normalizeApiResponse(response);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des mouvements:', error);
+      throw error;
+    }
   },
   
-  createMovement: (movementData: any) =>
-    apiRequest(endpoints.movements, {
-      method: 'POST',
-      body: JSON.stringify(movementData),
-    }),
+  createMovement: async (movementData: any) => {
+    try {
+      console.log('Création de mouvement avec données:', movementData);
+      const response = await apiRequest(endpoints.movements, {
+        method: 'POST',
+        body: JSON.stringify(movementData),
+      });
+      console.log('Mouvement créé:', response);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création du mouvement:', error);
+      throw error;
+    }
+  },
 };
 
 // Attendance Services
 export const attendanceService = {
   getAttendance: async () => {
-    const response = await apiRequest(endpoints.attendance);
-    return normalizeApiResponse(response);
+    try {
+      const response = await apiRequest(endpoints.attendance);
+      console.log('Attendance API response:', response);
+      return normalizeApiResponse(response);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des présences:', error);
+      throw error;
+    }
   },
   
-  createAttendance: (attendanceData: any) =>
-    apiRequest(endpoints.attendance, {
-      method: 'POST',
-      body: JSON.stringify(attendanceData),
-    }),
+  createAttendance: async (attendanceData: any) => {
+    try {
+      console.log('Création de présence avec données:', attendanceData);
+      const response = await apiRequest(endpoints.attendance, {
+        method: 'POST',
+        body: JSON.stringify(attendanceData),
+      });
+      console.log('Présence créée:', response);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création de la présence:', error);
+      throw error;
+    }
+  },
   
   updateAttendance: (id: string, attendanceData: any) =>
     apiRequest(`${endpoints.attendance}${id}/`, {
@@ -349,15 +396,30 @@ export const attendanceService = {
 // Messaging Services
 export const messagingService = {
   getMessages: async () => {
-    const response = await apiRequest(endpoints.messages);
-    return normalizeApiResponse(response);
+    try {
+      const response = await apiRequest(endpoints.messages);
+      console.log('Messages API response:', response);
+      return normalizeApiResponse(response);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des messages:', error);
+      throw error;
+    }
   },
   
-  createMessage: (messageData: any) =>
-    apiRequest(endpoints.messages, {
-      method: 'POST',
-      body: JSON.stringify(messageData),
-    }),
+  createMessage: async (messageData: any) => {
+    try {
+      console.log('Création de message avec données:', messageData);
+      const response = await apiRequest(endpoints.messages, {
+        method: 'POST',
+        body: JSON.stringify(messageData),
+      });
+      console.log('Message créé:', response);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création du message:', error);
+      throw error;
+    }
+  },
   
   updateMessage: (id: string, messageData: any) =>
     apiRequest(`${endpoints.messages}${id}/`, {

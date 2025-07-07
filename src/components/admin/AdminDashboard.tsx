@@ -4,6 +4,7 @@ import { Package, Store, Users, AlertTriangle, TrendingUp, DollarSign } from 'lu
 import { productsService, storesService, authService, stockService } from '../../services/api';
 import { normalizeApiResponse } from '../../config/api';
 import { Produit, Stock, Magasin, User } from '../../types';
+import { safeNumber } from '../../utils/numbers';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -22,6 +23,8 @@ export const AdminDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
+      console.log('Chargement des données du dashboard...');
+      
       // Récupérer toutes les données en parallèle
       const [produitsResponse, magasinsResponse, utilisateursResponse, stocksResponse] = await Promise.all([
         productsService.getProducts(),
@@ -30,9 +33,18 @@ export const AdminDashboard: React.FC = () => {
         stockService.getStocks()
       ]);
 
+      console.log('Données reçues:', {
+        produits: produitsResponse,
+        magasins: magasinsResponse,
+        utilisateurs: utilisateursResponse,
+        stocks: stocksResponse
+      });
+
       // Normaliser toutes les réponses
       const produits = normalizeApiResponse(produitsResponse).map((item: any) => ({
         ...item,
+        prix_unitaire: safeNumber(item.prix_unitaire, 0),
+        seuil_alerte: safeNumber(item.seuil_alerte, 0),
         createdAt: new Date(item.created_at)
       })) as Produit[];
 
@@ -48,10 +60,13 @@ export const AdminDashboard: React.FC = () => {
 
       const stocks = normalizeApiResponse(stocksResponse).map((item: any) => ({
         ...item,
+        quantite: safeNumber(item.quantite, 0),
         updatedAt: new Date(item.updated_at)
       })) as Stock[];
 
-      // Calculer les alertes de stock
+      console.log('Données normalisées:', { produits, magasins, utilisateurs, stocks });
+
+      // Calculer les alertes de stock et la valeur totale
       let alertesCount = 0;
       let valeurTotale = 0;
       const stockDataMap = new Map();
@@ -59,18 +74,23 @@ export const AdminDashboard: React.FC = () => {
       stocks.forEach(stock => {
         const produit = produits.find(p => p.id === stock.produit_id);
         if (produit) {
-          if (stock.quantite <= produit.seuil_alerte) {
+          const quantite = safeNumber(stock.quantite, 0);
+          const prixUnitaire = safeNumber(produit.prix_unitaire, 0);
+          const seuilAlerte = safeNumber(produit.seuil_alerte, 0);
+          
+          if (quantite <= seuilAlerte) {
             alertesCount++;
           }
-          valeurTotale += stock.quantite * produit.prix_unitaire;
+          
+          valeurTotale += quantite * prixUnitaire;
 
           const magasin = magasins.find(m => m.id === stock.magasin_id);
           if (magasin) {
             const key = magasin.nom;
             if (stockDataMap.has(key)) {
-              stockDataMap.set(key, stockDataMap.get(key) + stock.quantite);
+              stockDataMap.set(key, stockDataMap.get(key) + quantite);
             } else {
-              stockDataMap.set(key, stock.quantite);
+              stockDataMap.set(key, quantite);
             }
           }
         }
@@ -78,15 +98,24 @@ export const AdminDashboard: React.FC = () => {
 
       const stockChartData = Array.from(stockDataMap.entries()).map(([nom, quantite]) => ({
         magasin: nom,
-        quantite
+        quantite: safeNumber(quantite, 0)
       }));
+
+      console.log('Statistiques calculées:', {
+        totalProduits: produits.length,
+        totalMagasins: magasins.length,
+        totalUtilisateurs: utilisateurs.length,
+        alertesStock: alertesCount,
+        valeurTotaleStock: valeurTotale,
+        stockChartData
+      });
 
       setStats({
         totalProduits: produits.length,
         totalMagasins: magasins.length,
         totalUtilisateurs: utilisateurs.length,
         alertesStock: alertesCount,
-        valeurTotaleStock: valeurTotale
+        valeurTotaleStock: safeNumber(valeurTotale, 0)
       });
 
       setStockData(stockChartData);
@@ -188,38 +217,56 @@ export const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Stock par Magasin</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stockData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="magasin" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="quantite" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+          {stockData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={stockData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="magasin" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="quantite" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Aucune donnée de stock disponible</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Répartition des Stocks</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stockData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ magasin, percent }) => `${magasin} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="quantite"
-              >
-                {stockData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {stockData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={stockData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ magasin, percent }) => `${magasin} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="quantite"
+                >
+                  {stockData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Aucune donnée de stock disponible</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

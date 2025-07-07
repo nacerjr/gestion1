@@ -53,7 +53,10 @@ export const MessagingWidget: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Récupération des utilisateurs...');
       const usersData = await authService.getUsers();
+      console.log('Utilisateurs reçus:', usersData);
+      
       const normalizedUsers = normalizeApiResponse(usersData);
       const filteredUsers = normalizedUsers
         .filter((u: any) => u.id !== user?.id)
@@ -62,6 +65,8 @@ export const MessagingWidget: React.FC = () => {
           createdAt: new Date(item.date_joined || item.created_at)
         }));
 
+      console.log('Utilisateurs filtrés:', filteredUsers);
+
       if (user?.role === 'admin') {
         setUsers(filteredUsers.filter((u: any) => u.role === 'employe'));
       } else {
@@ -69,26 +74,33 @@ export const MessagingWidget: React.FC = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
+      toast.error('Erreur lors du chargement des utilisateurs');
     }
   };
 
   const fetchMessages = async () => {
     try {
+      console.log('Récupération des messages...');
       const messagesData = await messagingService.getMessages();
+      console.log('Messages reçus:', messagesData);
+      
       const normalizedMessages = normalizeApiResponse(messagesData);
       const formattedMessages = normalizedMessages.map((item: any) => ({
         ...item,
         timestamp: new Date(item.timestamp)
       })) as Message[];
 
+      console.log('Messages formatés:', formattedMessages);
       setMessages(formattedMessages);
 
       const unread = formattedMessages.filter(msg => 
         msg.receiver_id === user?.id && !msg.read
       ).length;
       setUnreadCount(unread);
+      console.log('Messages non lus:', unread);
     } catch (error) {
       console.error('Erreur lors du chargement des messages:', error);
+      toast.error('Erreur lors du chargement des messages');
     }
   };
 
@@ -96,13 +108,18 @@ export const MessagingWidget: React.FC = () => {
     if (!newMessage.trim() || !selectedUser || !user) return;
 
     try {
+      console.log('Envoi du message:', {
+        receiver: selectedUser.id,
+        content: newMessage.trim()
+      });
+
       await messagingService.createMessage({
         receiver: selectedUser.id,
         content: newMessage.trim()
       });
 
       setNewMessage('');
-      fetchMessages();
+      await fetchMessages(); // Recharger les messages
       toast.success('Message envoyé');
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);
@@ -113,7 +130,7 @@ export const MessagingWidget: React.FC = () => {
   const markAsRead = async (messageId: string) => {
     try {
       await messagingService.updateMessage(messageId, { read: true });
-      fetchMessages();
+      await fetchMessages(); // Recharger les messages
     } catch (error) {
       console.error('Erreur lors du marquage comme lu:', error);
     }
@@ -129,7 +146,7 @@ export const MessagingWidget: React.FC = () => {
     return messages.filter(msg => 
       (msg.sender_id === user.id && msg.receiver_id === selectedUser.id) ||
       (msg.sender_id === selectedUser.id && msg.receiver_id === user.id)
-    );
+    ).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   };
 
   const handleUserSelect = (selectedUser: User) => {
@@ -249,8 +266,8 @@ export const MessagingWidget: React.FC = () => {
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {u.prenom} {u.nom}
                           </div>
-                          <div className="text-xs text-gray-500 capitalize">
-                            {u.role}
+                          <div className="text-xs text-gray-500 truncate">
+                            {u.email}
                           </div>
                           {userUnreadCount > 0 && (
                             <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
